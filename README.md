@@ -38,6 +38,10 @@ From here, you might want to adjust your system to run Polaris on login using Cr
 
 If you want to uninstall Polaris, execute `make uninstall` from the extracted archive's directory. This will simply delete the directories created by the install process.
 
+### FreeBSD
+
+[Tutorian](doc/freebsd/jail)
+
 ### In a docker container
 
 To run polaris from a Docker container, please follow instructions from the [docker-polaris](https://github.com/ogarcia/docker-polaris) repository.

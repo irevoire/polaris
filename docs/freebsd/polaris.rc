@@ -1,0 +1,80 @@
+#!/bin/sh
+
+# PROVIDE: polaris
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf.local or /etc/rc.conf
+# to enable this service:
+#
+# MANDATORY:
+#
+# polaris_enable (bool):	Set to NO by default.
+#				Set it to YES to enable polaris.
+#
+# OPTIONAL:
+#
+# polaris_command (path):	The location of the command. Default is
+#				/home/$polaris_user/bin/polaris
+#
+# polaris_user (str):		The UNPRIVILEGED user to run as polaris
+#				by default
+#
+# polaris_conf (path):		Set to /home/$polaris_user/.config/polaris
+#				by default
+#
+# polaris_database (path):	Set to /home/$polaris_user/db by default.
+#
+# polaris_loglevel (str):	Set to 2 by default
+#
+# polaris_logfile (path):	Set to /var/log/polaris.log by default
+
+. /etc/rc.subr
+
+name="polaris"
+rcvar=polaris_enable
+# command=/home/polaris/bin/polaris
+
+pidfile=/var/run/${name}/pid
+
+start_precmd=${name}_prestart
+stop_postcmd=${name}_poststop
+
+polaris_prestart()
+{
+	if [ ! -d "/var/run/${name}" ]; then
+ 		if [ -e "/var/run/${name}" ]; then
+			unlink /var/run/${name}
+ 		fi
+ 		mkdir -p /var/run/${name}
+	fi
+
+	chmod 0755 /var/run/${name}
+	chown -R $polaris_user /var/run/${name}
+
+	echo "-c $polaris_conf -l $polaris_loglevel -d $polaris_database -w $polaris_web"
+}
+
+polaris_poststop()
+{
+	[ -e "$pidfile" ] && unlink $pidfile
+	[ -d "${pidfile%/pid}" ] && rmdir ${pidfile%/pid}
+
+	[ -e "$polaris_logfile" -a ! -s "$polaris_logfile" ] &&
+		unlink $polaris_logfile
+}
+
+load_rc_config $name
+
+: ${polaris_enable:="NO"}
+: ${polaris_user:="polaris"}
+: ${polaris_conf:="/home/${polaris_user}/.config/polaris"}
+: ${polaris_loglevel:="3"}
+: ${polaris_command="/home/${polaris_user}/bin/${name}"}
+: ${polaris_database="/home/${polaris_user}/db"}
+: ${polaris_web="/home/${polaris_user}/web"}
+
+command=${polaris_command}
+command_args="-c $polaris_conf -l $polaris_loglevel -d $polaris_database -w $polaris_web"
+
+run_rc_command "$1"
